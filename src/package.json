@@ -1,0 +1,6 @@
+{
+  "name": "personal-site-backend",
+  "version": "1.0.0",
+  "description": "Personal site backend as IaC on AWS",
+  "main": "app.js"
+}
