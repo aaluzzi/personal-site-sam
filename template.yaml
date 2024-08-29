@@ -56,10 +56,34 @@ Resources:
           Properties:
             Path: /insert-visitor
             Method: post
-            ApiId: !Ref HttpApi  # Reference the HttpApi resource
+            ApiId: !Ref HttpApi
       Policies:
         - DynamoDBWritePolicy:
             TableName: Visitors
+  
+  SendMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.sendMessageHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Events:
+        SendMessage:
+          Type: HttpApi
+          Properties:
+            Path: /send-message
+            Method: post
+            ApiId: !Ref HttpApi
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'ses:SendEmail'
+                - 'ses:SendRawEmail'
+              Resource: '*'
 
 Outputs:
   VisitorCountApi:
@@ -69,3 +93,7 @@ Outputs:
   InsertVisitorApi:
     Description: "API Gateway endpoint URL for Insert Visitor function"
     Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/insert-visitor"
+
+  SendMessageApi:
+    Description: "API Gateway endpoint URL for Send Message function"
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/send-message"
