@@ -10,6 +10,19 @@ Globals:
     Timeout: 3
 
 Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - content-type
+
   VisitorCountFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -20,15 +33,39 @@ Resources:
         - x86_64
       Events:
         VisitorCount:
-          Type: Api
+          Type: HttpApi
           Properties:
             Path: /visitor-count
             Method: get
+            ApiId: !Ref HttpApi  # Reference the HttpApi resource
       Policies:
         - DynamoDBReadPolicy:
+            TableName: Visitors
+  
+  InsertVisitorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.insertVisitorHandler
+      Runtime: nodejs20.x
+      Architectures:
+        - x86_64
+      Events:
+        InsertVisitor:
+          Type: HttpApi
+          Properties:
+            Path: /insert-visitor
+            Method: post
+            ApiId: !Ref HttpApi  # Reference the HttpApi resource
+      Policies:
+        - DynamoDBWritePolicy:
             TableName: Visitors
 
 Outputs:
   VisitorCountApi:
-    Description: "API Gateway endpoint URL for Prod stage for Visitor Count function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/visitor-count/"
+    Description: "API Gateway endpoint URL for Visitor Count function"
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/visitor-count"
+
+  InsertVisitorApi:
+    Description: "API Gateway endpoint URL for Insert Visitor function"
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/insert-visitor"

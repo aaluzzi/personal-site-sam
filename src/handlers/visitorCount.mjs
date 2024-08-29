@@ -15,9 +15,6 @@ export const visitorCountHandler = async (event) => {
     }));
     return {
       statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*'
-      },
       body: JSON.stringify({
         count: result.Count 
       }),
